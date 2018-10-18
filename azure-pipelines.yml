@@ -1,8 +1,4 @@
-# Xamarin.iOS
-# Build a Xamarin.iOS project.
-# Add steps that install certificates, test, sign, and distribute an app, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/xamarin
-
+# Select the Agent to run the builds on
 pool:
   vmImage: 'macOS 10.13'
 
@@ -14,15 +10,30 @@ steps:
   displayName: 'Select the Xamarin SDK version'
   enabled: false
 
+# Install NuGet on Build Agend and restore packages
 - task: NuGetToolInstaller@0
-
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '**/*.sln'
 
+# Build iOS Application
 - task: XamariniOS@2
   inputs:
     solutionFile: '**/*.iOS.csproj'
-    configuration: 'Release'
+    configuration: '$(BuildConfiguration)'
     buildForSimulator: true
     packageApp: false
+
+# Build Android Application
+- task: XamarinAndroid@1
+  inputs:
+    projectFile: '**/*.Droid.csproj'
+    configuration: '$(BuildConfiguration)'
+    msbuildVersionOption: latest
+    
+# Build UI Tests
+- task: MSBuild@1
+  inputs:
+    solution: '**/*.UITests.csproj'
+    configuration: '$(BuildConfiguration)'
+
